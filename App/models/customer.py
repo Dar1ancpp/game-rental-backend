@@ -4,7 +4,7 @@ from App.database import db
 class Customer(User):
     __tablename__ = 'customer'
     status = db.Column(db.String(120), nullable=False, default='active')
-    listings = db.relationship('Listing', backref=db.backref('owner', lazy='joined'))
+    listings = db.relationship('Listing', foreign_keys='Listing.ownerId', backref=db.backref('owner', lazy='joined'))
     rentals = db.relationship('Rental', backref=db.backref('renter', lazy='joined'))
     payments = db.relationship('Payment', backref=db.backref('customer', lazy='joined'))
     __mapper_args__ = {

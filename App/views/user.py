@@ -10,10 +10,28 @@ from App.controllers import (
     get_all_customers_json,
     jwt_authenticate,
     is_staff,
-    get_user
+    get_user,
+    get_user_by_username
 )
 
 user_views = Blueprint('user_views', __name__, template_folder='../templates')
+
+
+@user_views.route('/signup', methods=['POST'])
+def signup():
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "JSON object required"}), 400
+    username = data.get('username')
+    password = data.get('password')
+    if not isinstance(username, str) or not isinstance(password, str) or not username.strip() or not password:
+        return jsonify({"error": "username and password are required"}), 400
+    result = create_customer(username=username, password=password)
+    if result:
+        return jsonify({"message": "account created"}), 201
+    if get_user_by_username(username):
+        return jsonify({"error": "username already taken"}), 400
+    return jsonify({"error": "account not created"}), 500
 
 
 @user_views.route('/auth', methods=['POST'])

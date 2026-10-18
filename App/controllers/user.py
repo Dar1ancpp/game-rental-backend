@@ -69,19 +69,17 @@ def get_all_customers_json():
     return [customer.toJSON() for customer in customers]
 
 def get_all_users_json():
-    staff = Staff.query.all()
-    customers = Customer.query.all()
-    users = []
-    if not (staff or customers):
-        return []
-    
-    for s in staff:
-        users.append(s.toJSON())
-    
-    for c in customers:
-        users.append(c.toJSON())
-    
-    return users
+    users = get_all_users()
+    return [user.toJSON() for user in users]
+
+def update_user(id, username):
+    user = get_user(id)
+    if user:
+        user.username = username
+        db.session.add(user)
+        return db.session.commit()
+    return None
+
 
 def update_staff(id, username):
     user = get_staff(id)

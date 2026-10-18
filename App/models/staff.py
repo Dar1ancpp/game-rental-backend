@@ -19,6 +19,7 @@ class Staff(User):
     def list_game(self, owner, game, condition, price):
         try:
             listing = Listing(owner.id, game.gameId, condition, price)
+            listing.staffId = self.id
             db.session.add(listing)
             db.session.commit()
             return listing
@@ -40,12 +41,13 @@ class Staff(User):
     #assumes listing is valid and available
     def confirm_rental(self, renter, listing):
         rental = Rental(renter.id, listing.listingId)
-        payment = RentalPayment(rental)
         try:
             if listing.status != 'available':
                 raise Exception(f'listing {listing.listingId} is not available')
             listing.status = 'rented'
             db.session.add(rental)
+            db.session.flush()
+            payment = RentalPayment(rental)
             db.session.add(payment)
             db.session.add(listing)
             db.session.commit()
@@ -59,11 +61,13 @@ class Staff(User):
             if rental.return_date != None:
                 raise Exception(f'rental {rental.rentalId} has already been returned')
             fees = rental.return_rental()
-            rental_payment = RentalPayment(rental)
             listing = Listing.query.get(rental.listingId)
             listing.status = 'available'
             db.session.add(listing)
-            db.session.add(rental_payment)
+            if fees > 0:
+                rental_payment = RentalPayment(rental)
+                rental_payment.amount = fees
+                db.session.add(rental_payment)
             db.session.commit()
             return fees
         except:
